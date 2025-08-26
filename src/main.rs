@@ -133,6 +133,8 @@ fn construct_compute_shader(device: &wgpu::Device, output: &wgpu::Buffer) -> wgp
 }
 
 async fn real_main() -> Result<(), Box<dyn Error>> {
+    env_logger::init();
+
     let (device, queue) = initialize_gpu().await?;
 
     let output = device.create_buffer(&BufferDescriptor {
@@ -145,13 +147,13 @@ async fn real_main() -> Result<(), Box<dyn Error>> {
     let index = queue.submit(std::iter::once(construct_compute_shader(&device, &output)));
 
     device.poll(wgpu::PollType::WaitForSubmissionIndex(index))?;
-    println!("GPU Completed");
+    log::info!("GPU Completed");
 
     output.map_async(wgpu::MapMode::Read, .., {
         let output = output.clone();
         move |result| {
             if let Err(err) = result {
-                eprintln!("{err}");
+                log::error!("{err}");
                 return;
             }
 
