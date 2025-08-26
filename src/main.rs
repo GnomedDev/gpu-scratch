@@ -50,13 +50,15 @@ pub enum RunError {}
 /// This function
 /// 1. Creates an intermediate working buffer.
 /// 2. Compiles the shader into a module.
-/// 3. Creates a CommandEncoder.
-/// 4. Creates a ComputePipeline that contains the shader module.
-/// 5. Creates a BindGroup that contains the working buffer.
-/// 6. Creates a ComputePass with the ComputePipeline and BindGroup
-/// 7. Encodes this ComputePass into the CommandEncoder.
-/// 8. Encodes a copy from the intermediate buffer into `output`
-/// 9. Finishes the encode.
+/// 3. Creates a BindGroupLayout describing the working buffer.
+/// 4. Creates a ComputePipelineLayout containing the BindGroupLayout
+/// 5. Creates a CommandEncoder.
+/// 6. Creates a ComputePipeline that contains the shader module following the ComputePipelineLayout.
+/// 7. Creates a BindGroup that following the BindGroupLayout.
+/// 8. Creates a ComputePass with the ComputePipeline and BindGroup.
+/// 9. Encodes a dispatched ComputePass into the CommandEncoder.
+/// 10. Encodes a copy from the intermediate buffer into `output`
+/// 11. Finishes the encode.
 fn construct_compute_shader(device: &wgpu::Device, output: &wgpu::Buffer) -> wgpu::CommandBuffer {
     const SHADER_OPTIONS: wgpu::ShaderModuleDescriptor = wgpu::ShaderModuleDescriptor {
         label: Some("shader-main"),
@@ -123,7 +125,7 @@ fn construct_compute_shader(device: &wgpu::Device, output: &wgpu::Buffer) -> wgp
         let mut pass = encoder.begin_compute_pass(&ComputePassDescriptor::default());
         pass.set_pipeline(&compute_pipeline);
         pass.set_bind_group(0, &bind_group, &[]);
-        pass.dispatch_workgroups(1, 0, 0);
+        pass.dispatch_workgroups(1, 1, 1);
     }
 
     encoder.copy_buffer_to_buffer(&buffer, 0, output, 0, output.size());
